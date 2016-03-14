@@ -267,7 +267,7 @@
 	 * serialize object
 	 * @returns {String}
 	 */
-	lib.Class.prototype.clone = function () {
+	lib.Class.prototype.serialize = function () {
 		return lib.serialize(this);
 	};
 	/**

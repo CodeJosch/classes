@@ -91,9 +91,11 @@ describe('Serializing and Deserializing', function () {
 		"another":classes.forName("vehicles.Car").createInstance()
 	});
 	var o = classes.deserialize(s);
+	var s2 = classes.createInstance("vehicles.Bike", {"km":2}).serialize();
 
 	it('Serializing returns string', function () {
 		chai.expect(s).to.be.a("string");
+		chai.expect(s2).to.be.a("string");
 	});
 
 	it('Deserializing returns object', function () {
