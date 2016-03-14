@@ -262,6 +262,14 @@
 	lib.Class.prototype.clone = function () {
 		return new this(lib.clone(this.props()));
 	};
+
+	/**
+	 * serialize object
+	 * @returns {String}
+	 */
+	lib.Class.prototype.clone = function () {
+		return lib.serialize(this);
+	};
 	/**
 	 * base class init method, sets passed properties to privatees
 	 * @param options
