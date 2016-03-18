@@ -2,9 +2,9 @@
 	"use strict";
 
 
-	(function(gobj) {
+	(function (gobj) {
 		lib.core = {};
-		["String", "Boolean", "Date", "Number"].forEach(function(clzname) {
+		["String", "Boolean", "Date", "Number"].forEach(function (clzname) {
 			lib.core[clzname] = gobj[clzname];
 		});
 
@@ -57,7 +57,11 @@
 	 */
 	lib.unlazy = function (obj) {
 		if (!obj || "object" !== typeof obj) return obj;
-
+		if (obj.__currentlyPrepped) {
+			lib.warn("Cannot unlazy in circles", obj);
+			return obj;
+		}
+		obj.__currentlyPrepped = true;
 		if (obj instanceof Array) {
 			for (var i = 0, len = obj.length; i < len; i++) {
 				obj[i] = lib.unlazy(obj[i]);
@@ -71,11 +75,13 @@
 			}
 
 			for (var attr in obj) {
-				if (obj.hasOwnProperty(attr)) {
+				if (obj.hasOwnProperty(attr) && attr !== "__currentlyPrepped") {
 					obj[attr] = lib.unlazy(obj[attr]);
 				}
 			}
 		}
+		delete obj.__currentlyPrepped;
+
 		return obj;
 	};
 
@@ -98,7 +104,7 @@
 			for (var corename in lib.core) {
 				if (obj instanceof lib.core[corename]) {
 					return {
-						"_classname": "core."+corename,
+						"_classname": "core." + corename,
 						"param": obj.valueOf()
 					};
 
@@ -142,36 +148,6 @@
 	 * @param ser
 	 */
 	lib.deserialize = function (ser) {
-		var unprep = function (obj) {
-			var copy;
-
-			if (null === obj || "object" !== typeof obj) return obj;
-
-			if (obj instanceof Array) {
-				copy = [];
-				for (var i = 0, len = obj.length; i < len; i++) {
-					copy[i] = unprep(obj[i]);
-				}
-				return copy;
-			}
-
-			if (obj instanceof Object) {
-				copy = {};
-
-				if (obj._classname) {
-					return lib.createInstance(obj._classname, obj.param);
-				}
-				for (var attr in obj) {
-					if (obj.hasOwnProperty(attr)) {
-						copy[attr] = unprep(obj[attr]);
-					}
-				}
-
-				return copy;
-			}
-			lib.warn("Could not unprep ", obj);
-			return undefined;
-		};
 		return lib.unlazy(JSON.parse(ser));
 	};
 
@@ -307,7 +283,7 @@
 	lib.Class.prototype.init = function (options) {
 		var props = {};
 
-		lib.merge(props, lib.clone(this.defaults), lib.unlazy(options||{}));
+		lib.merge(props, lib.clone(this.defaults), lib.unlazy(options || {}));
 
 		this.setProp = function (name, value) {
 			props[name] = value;
