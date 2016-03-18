@@ -1,5 +1,4 @@
 var gulp = require('gulp');
-var watch = require('gulp-watch');
 var compressor = require('node-minify');
 var jshint = require('gulp-jshint');
 

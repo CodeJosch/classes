@@ -104,7 +104,6 @@ describe('Serializing and Deserializing', function () {
 	});
 
 	it('object properties are deserialized correctly', function () {
-
 		chai.expect(o.str).to.be.a("string");
 		chai.expect(o.str.toString()).to.equal("str");
 
@@ -118,8 +117,14 @@ describe('Serializing and Deserializing', function () {
 		chai.expect(o.date.getFullYear()).to.equal(1995);
 		chai.expect(o.obj).to.be.a("object");
 		chai.expect(o.obj._classname).to.equal("vehicles.Bike");
-	});
-	it('object properties are deserialized correctly', function () {
 
+		chai.expect(o.obj.prop).to.be.a("function");
+
+
+	});
+	it('objects in properties of objects deserialized correctly', function () {
+		chai.expect(o.obj.prop("owner")).to.be.a("object");
+		chai.expect(o.obj.prop("owner").prop).to.be.a("function");
+		chai.expect(o.obj.prop("owner").prop("name")).to.equal("biker");
 	});
 });

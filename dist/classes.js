@@ -51,6 +51,35 @@
 	};
 
 	/**
+	 * instantiate lazy obejct definitions identified by _classname
+	 * @param obj
+	 * @returns {*}
+	 */
+	lib.unlazy = function (obj) {
+		if (!obj || "object" !== typeof obj) return obj;
+
+		if (obj instanceof Array) {
+			for (var i = 0, len = obj.length; i < len; i++) {
+				obj[i] = lib.unlazy(obj[i]);
+			}
+			return obj;
+		}
+		if (obj instanceof Object) {
+
+			if (obj._classname) {
+				return lib.createInstance(obj._classname, obj.param);
+			}
+
+			for (var attr in obj) {
+				if (obj.hasOwnProperty(attr)) {
+					obj[attr] = lib.unlazy(obj[attr]);
+				}
+			}
+		}
+		return obj;
+	};
+
+	/**
 	 * serialize object to a string
 	 * @param ser
 	 */
@@ -86,7 +115,7 @@
 			}
 			if (obj instanceof Object) {
 				copy = {};
-				if (obj._classname) {
+				if (obj._classname && typeof obj.props === "function") {
 					copy = {
 						"_classname": obj._classname,
 						"param": prep(obj.props())
@@ -143,7 +172,7 @@
 			lib.warn("Could not unprep ", obj);
 			return undefined;
 		};
-		return unprep(JSON.parse(ser));
+		return lib.unlazy(JSON.parse(ser));
 	};
 
 	/**
@@ -270,6 +299,7 @@
 	lib.Class.prototype.serialize = function () {
 		return lib.serialize(this);
 	};
+
 	/**
 	 * base class init method, sets passed properties to privatees
 	 * @param options
@@ -277,7 +307,7 @@
 	lib.Class.prototype.init = function (options) {
 		var props = {};
 
-		lib.merge(props, lib.clone(this.defaults), options);
+		lib.merge(props, lib.clone(this.defaults), lib.unlazy(options||{}));
 
 		this.setProp = function (name, value) {
 			props[name] = value;
