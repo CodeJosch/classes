@@ -4,7 +4,6 @@ var jshint = require('gulp-jshint');
 
 gulp.task('build',['scripts'], function () {
 
-// Using Google Closure
 	new compressor.minify({
 		type: 'gcc',
 		fileIn: 'src/classes.js',

@@ -16,9 +16,9 @@
 	 */
 	lib.warn = function () {
 		console.warn(arguments);
-		console.trace();
 	};
 
+	lib.instancesCreated = 0;
 	/**
 	 * merge objects to first supplied parameter
 	 * @returns {*}
@@ -302,6 +302,7 @@
 			return props;
 		};
 
+		this.id = ++lib.instancesCreated;
 	};
 
 	/**
