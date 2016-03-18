@@ -1,6 +1,6 @@
 {
   "name": "classes",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Simple classes framework with extendable classes and serializable objects for node nd browser",
   "main": "src/classes.js",
   "scripts": {

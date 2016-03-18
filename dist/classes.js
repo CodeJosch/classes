@@ -16,6 +16,7 @@
 	 */
 	lib.warn = function () {
 		console.warn(arguments);
+		console.trace();
 	};
 
 	/**
@@ -57,30 +58,28 @@
 	 */
 	lib.unlazy = function (obj) {
 		if (!obj || "object" !== typeof obj) return obj;
-		if (obj.__currentlyPrepped) {
+		if (obj.__currentlyUnlazied) {
 			lib.warn("Cannot unlazy in circles", obj);
 			return obj;
 		}
-		obj.__currentlyPrepped = true;
+		obj.__currentlyUnlazied = true;
 		if (obj instanceof Array) {
 			for (var i = 0, len = obj.length; i < len; i++) {
 				obj[i] = lib.unlazy(obj[i]);
 			}
-			return obj;
-		}
-		if (obj instanceof Object) {
+		} else if (obj instanceof Object) {
 
 			if (obj._classname) {
 				return lib.createInstance(obj._classname, obj.param);
 			}
 
 			for (var attr in obj) {
-				if (obj.hasOwnProperty(attr) && attr !== "__currentlyPrepped") {
+				if (obj.hasOwnProperty(attr) && attr !== "__currentlyUnlazied") {
 					obj[attr] = lib.unlazy(obj[attr]);
 				}
 			}
 		}
-		delete obj.__currentlyPrepped;
+		delete obj.__currentlyUnlazied;
 
 		return obj;
 	};
