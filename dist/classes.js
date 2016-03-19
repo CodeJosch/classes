@@ -1,22 +1,37 @@
-(function (lib) {
+/**
+ * classes 0.2.0
+ *
+ * Simple classes framework with extendable classes and serializable objects for node and browser.
+ *
+ * https://github.com/CodeJosch/classes.git
+ *
+ * @preserve
+ */
+var classes = (function () {
 	"use strict";
 
+	var lib = function(){};
+
+	lib.version = "0.2.0";
+
+	// setup namespace
+	lib.defined = { core : {}};
 
 	(function (gobj) {
-		lib.core = {};
+
 		["String", "Boolean", "Date", "Number"].forEach(function (clzname) {
-			lib.core[clzname] = gobj[clzname];
+			lib.defined.core[clzname] = gobj[clzname];
 		});
 
 	})(typeof window !== "undefined" ? window : global);
 
+	
 	/**
 	 * output a warning message
 	 * @param msg
 	 */
 	lib.warn = function () {
 		console.warn(arguments);
-		console.trace();
 	};
 
 	lib.instancesCreated = 0;
@@ -70,7 +85,7 @@
 			}
 		} else if (obj instanceof Object) {
 
-			if (obj._classname) {
+			if (obj._classname && typeof obj.prop !== "function") {
 				return lib.createInstance(obj._classname, obj.param);
 			}
 
@@ -101,8 +116,8 @@
 				return {};
 			}
 
-			for (var corename in lib.core) {
-				if (obj instanceof lib.core[corename]) {
+			for (var corename in lib.defined.core) {
+				if (obj instanceof lib.defined.core[corename]) {
 					return {
 						"_classname": "core." + corename,
 						"param": obj.valueOf()
@@ -151,6 +166,7 @@
 		return lib.unlazy(JSON.parse(ser));
 	};
 
+
 	/**
 	 * Find a class by its name
 	 * @param classname
@@ -158,7 +174,7 @@
 	 */
 	lib.forName = function (classname) {
 		var ns = classname.split("."),
-			cur = lib;
+			cur = lib.defined;
 
 		for (var i = 0, ito = ns.length - 1; i < ito; i++) {
 			if (!cur[ns[i]]) {
@@ -175,14 +191,18 @@
 	 * @param options
 	 * @returns {Class}
 	 */
-	lib.createInstance = function (classname, options) {
-		var clz = lib.forName(classname);
+	lib.createInstance = function () {
+		var classname, options;
+		if (typeof arguments[0]==="string") {
+			var clz = lib.forName(arguments[0]);
 
-		if (!clz) {
-			lib.warn("Class " + classname + " not found.");
-			return null;
+			if (!clz) {
+				lib.warn("Class " + arguments[0] + " not found.");
+				return null;
+			}
+			return new clz(arguments[1]);
 		}
-		return new clz(options);
+		return new this(arguments[0]);
 	};
 
 	/**
@@ -193,8 +213,8 @@
 	 *   (overrides)
 	 * @returns (Class)
 	 */
-	lib.extend = function () {
-		var superclass = lib.Class,
+	lib.define = function () {
+		var superclass = lib,
 			classname,
 			overrides = {};
 
@@ -212,31 +232,23 @@
 	};
 
 	/**
-	 * Base class constructor
-	 * @param options
-	 * @constructor
-	 */
-	lib.Class = function (options) {
-	};
-
-	/**
 	 * Classname property
 	 * @type {string}
 	 * @private
 	 */
-	lib.Class.prototype._classname = "Class";
+	lib.prototype._classname = "Class";
 
 	/**
 	 * default property values.
 	 * @type {{}}
 	 */
-	lib.Class.prototype.defaults = {};
+	lib.prototype.defaults = {};
 
 	/**
 	 * Create a string representation
 	 * @returns {string|string}
 	 */
-	lib.Class.prototype.toString = function () {
+	lib.prototype.toString = function () {
 		return this._classname + "(" + lib.serialize(this.props()) + ")";
 	};
 
@@ -245,7 +257,7 @@
 	 * @param clzname
 	 * @returns {boolean}
 	 */
-	lib.Class.prototype.instanceOf = function (clzname) {
+	lib.prototype.instanceOf = function (clzname) {
 		var cur = this;
 		while (cur) {
 			if (cur._classname === clzname) {
@@ -262,9 +274,9 @@
 
 	/**
 	 * clone object
-	 * @returns {lib.Class}
+	 * @returns {lib}
 	 */
-	lib.Class.prototype.clone = function () {
+	lib.prototype.clone = function () {
 		return new this(lib.clone(this.props()));
 	};
 
@@ -272,7 +284,7 @@
 	 * serialize object
 	 * @returns {String}
 	 */
-	lib.Class.prototype.serialize = function () {
+	lib.prototype.serialize = function () {
 		return lib.serialize(this);
 	};
 
@@ -280,10 +292,11 @@
 	 * base class init method, sets passed properties to privatees
 	 * @param options
 	 */
-	lib.Class.prototype.init = function (options) {
+	lib.prototype.init = function (options) {
 		var props = {};
 
-		lib.merge(props, lib.clone(this.defaults), lib.unlazy(options || {}));
+		lib.merge(props, JSON.parse(lib.serialize(this.defaults)), options );
+		props = lib.unlazy(props);
 
 		this.setProp = function (name, value) {
 			props[name] = value;
@@ -306,14 +319,7 @@
 		this.id = ++lib.instancesCreated;
 	};
 
-	/**
-	 * create instance of class
-	 * @param options
-	 * @returns {lib.Class}
-	 */
-	lib.Class.createInstance = function (options) {
-		return new this(options);
-	};
+
 	/**
 	 * extend a class by methods
 	 * @params (optional)
@@ -321,7 +327,7 @@
 	 * (object) ovverides
 	 * @returns {class}
 	 */
-	lib.Class.extend = function () {
+	lib.extend = function () {
 		var clzname,
 			overrides;
 		if (arguments.length === 2 && typeof arguments[0] === "string") {
@@ -331,7 +337,7 @@
 			} else {
 				overrides = arguments[1];
 			}
-		} else if (arguments.length === 1) {
+		}  else if (arguments.length === 1) {
 			if (typeof arguments[0] === "function") {
 				overrides = {init: arguments[0]};
 			} else {
@@ -377,19 +383,19 @@
 		lib.merge(proto, this, overrides);
 
 		proto.init = init;
-		proto.defaults = lib.clone(defaults);
+		proto.defaults = JSON.parse(lib.serialize(defaults));
 
 		clz.extend = function () {
-			return lib.Class.extend.apply(clz, arguments);
+			return lib.extend.apply(clz, arguments);
 		};
 
 		clz.createInstance = function () {
-			return lib.Class.createInstance.apply(clz, arguments);
+			return lib.createInstance.apply(clz, arguments);
 		};
 
 		if (clzname) {
 			var ns = clzname.split("."),
-				cur = lib;
+				cur = lib.defined;
 
 			for (var i = 0, ito = ns.length - 1; i < ito; i++) {
 				if (!cur[ns[i]]) {
@@ -401,5 +407,10 @@
 		}
 		return clz;
 	};
+	return lib;
+})();
 
-})(typeof module !== "undefined" ? module.exports = {} : classes = {});
+// expose node module
+if (typeof module !== "undefined") {
+	module.exports = classes;
+}
