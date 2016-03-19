@@ -1,25 +1,25 @@
 {
   "name": "classes",
-  "version": "0.1.1",
-  "description": "Simple classes framework with extendable classes and serializable objects for node nd browser",
+  "version": "0.2.0",
+  "description": "Simple classes framework with extendable classes and serializable objects for node and browser.",
   "main": "src/classes.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha"
   },
   "author": "Jochen Renner",
   "license": "ISC",
-  "dependencies": {
-  },
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/CodeJosch/classes.git"
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CodeJosch/classes.git"
   },
   "devDependencies": {
     "chai": "^3.5.0",
     "gulp": "^3.9.1",
-    "mocha": "^2.4.5",
-    "node-minify": "^1.3.7",
     "gulp-jshint": "^2.0.0",
-    "jshint": "^2.9.1"
+    "gulp-replace": "^0.5.4",
+    "jshint": "^2.9.1",
+    "mocha": "^2.4.5",
+    "node-minify": "^1.3.7"
   }
 }
